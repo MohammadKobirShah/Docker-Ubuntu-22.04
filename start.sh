@@ -1,14 +1,16 @@
 #!/bin/bash
 set -e
 
-# Start SSH
+# Start SSH service
 service ssh start
 
-# Start services
+# Start Filebrowser
 filebrowser -r / -p 8080 &
+
+# Start Wetty SSH
 wetty --port 10000 &
 
-# Start Node.js backend for stats & control
+# Start Node.js backend
 node /backend.js &
 
 # Start Nginx
