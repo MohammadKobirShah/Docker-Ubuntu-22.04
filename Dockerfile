@@ -3,10 +3,10 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ----------------------------
-# Base deps + SSH + build tools
+# Base deps + build tools
 # ----------------------------
 RUN apt update && apt install -y --no-install-recommends \
-    curl wget git sudo bash openssh-server nginx ca-certificates \
+    curl wget git bash nginx ca-certificates \
     python3 python3-pip make g++ build-essential \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,31 +33,28 @@ RUN curl -L -o /tmp/filebrowser.tar.gz \
     && chmod +x /usr/local/bin/filebrowser
 
 # ----------------------------
-# Install Express globally (backend)
+# Optional Node backend
 # ----------------------------
-RUN npm install -g express
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --production
+COPY backend.js ./
 
 # ----------------------------
-# Setup SSH
-# ----------------------------
-RUN mkdir -p /var/run/sshd && echo "root:root" | chpasswd
-
-# ----------------------------
-# Copy dashboard + config + scripts
+# Copy dashboard / scripts / config
 # ----------------------------
 COPY index.html /usr/share/nginx/html/index.html
 COPY start.sh /start.sh
-COPY backend.js /backend.js
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN chmod +x /start.sh
 
 # ----------------------------
-# Expose web port
+# Expose ports
 # ----------------------------
-EXPOSE 80
-EXPOSE 10000
+EXPOSE 80       # nginx / Filebrowser
+EXPOSE 10000    # Wetty
 
 # ----------------------------
-# Start all services
+# Start all-in-one
 # ----------------------------
 CMD ["/start.sh"]
