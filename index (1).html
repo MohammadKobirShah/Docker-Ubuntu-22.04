@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌐 Web Cloud Control Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+
+    body {
+        background: #1f1f2e;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    header {
+        background: #27293d;
+        padding: 20px 0;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    header h1 { color: #00ffcc; font-size: 28px; }
+
+    main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 30px;
+        padding: 40px 20px;
+    }
+
+    .card {
+        background: #2e2e44;
+        border-radius: 16px;
+        padding: 25px 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover { transform: translateY(-5px); box-shadow:0 12px 30px rgba(0,0,0,0.7); }
+
+    .card h2 { color:#00ffcc; margin-bottom:15px; font-size:20px; }
+    .card .status { margin-bottom:15px; font-size:14px; }
+    .card .status span { font-weight:bold; }
+
+    .card a, .card button {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+    }
+    .card a { background: #00ffcc; color: #1f1f2e; transition: background 0.2s; }
+    .card a:hover { background: #00d6a6; }
+
+    .card button { background: #ff5555; color: #fff; transition: background 0.2s; }
+    .card button:hover { background: #ff2222; }
+
+    footer {
+        background: #27293d;
+        text-align: center;
+        padding: 15px 0;
+        font-size: 14px;
+        color: #888;
+        border-top: 1px solid #3a3a50;
+    }
+
+    footer span { color: #00ffcc; font-weight: bold; }
+
+    @media(max-width: 768px){
+        main { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🌐 Web Cloud Control Panel</h1>
+</header>
+
+<main>
+    <div class="card">
+        <h2>📂 File Manager</h2>
+        <div class="status">Status: <span id="file-status">Loading...</span></div>
+        <a href="/filemanager/" target="_blank">Open Filebrowser</a>
+        <button onclick="restartService('filebrowser')">Restart</button>
+    </div>
+
+    <div class="card">
+        <h2>🔥 Terminal (Wetty)</h2>
+        <div class="status">Status: <span id="wetty-status">Loading...</span></div>
+        <a href="/terminal/" target="_blank">Open Wetty SSH</a>
+        <button onclick="restartService('wetty')">Restart</button>
+    </div>
+
+    <div class="card">
+        <h2>🔑 Terminal (SSHX)</h2>
+        <div class="status">Status: <span id="sshx-status">Loading...</span></div>
+        <a href="/sshx/" target="_blank">Open SSHX</a>
+        <button onclick="restartService('sshx')">Restart</button>
+    </div>
+
+    <div class="card">
+        <h2>📊 Server Stats</h2>
+        <div class="status">CPU: <span id="cpu">--%</span></div>
+        <div class="status">Memory: <span id="mem">--%</span></div>
+        <div class="status">Disk: <span id="disk">--%</span></div>
+        <button onclick="refreshStats()">Refresh Stats</button>
+    </div>
+</main>
+
+<footer>
+    Owner & Developer: <span>Md Kobir Shah</span> | Web Cloud Control Panel &copy; 2026
+</footer>
+
+<script>
+async function updateStatus(){
+    try{
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('file-status').innerText = data.filebrowser;
+        document.getElementById('wetty-status').innerText = data.wetty;
+        document.getElementById('sshx-status').innerText = data.sshx;
+    } catch(e){ console.error(e); }
+}
+
+async function refreshStats(){
+    try{
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('cpu').innerText = data.cpu + '%';
+        document.getElementById('mem').innerText = data.mem + '%';
+        document.getElementById('disk').innerText = data.disk + '%';
+    } catch(e){ console.error(e); }
+}
+
+async function restartService(name){
+    try{
+        await fetch('/api/restart/' + name, { method: 'POST' });
+        alert(name + ' restarted!');
+        updateStatus();
+    } catch(e){ alert('Failed to restart ' + name); }
+}
+
+// Initial load
+updateStatus();
+refreshStats();
+setInterval(()=>{ updateStatus(); refreshStats(); }, 5000); // refresh every 5s
+</script>
+
+</body>
+</html>
