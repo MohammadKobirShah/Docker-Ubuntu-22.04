@@ -33,11 +33,6 @@ RUN curl -L -o /tmp/filebrowser.tar.gz \
     && chmod +x /usr/local/bin/filebrowser
 
 # ----------------------------
-# Install SSHX (Web SSH alternative)
-# ----------------------------
-RUN curl -sSf https://sshx.io/get | sh -s run
-
-# ----------------------------
 # Install Express for backend API
 # ----------------------------
 RUN npm install express
