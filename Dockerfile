@@ -51,8 +51,10 @@ RUN chmod +x /start.sh
 # ----------------------------
 # Expose ports
 # ----------------------------
-EXPOSE 80       # nginx / Filebrowser
-EXPOSE 10000    # Wetty
+# nginx / Filebrowser
+EXPOSE 80
+# Wetty
+EXPOSE 10000
 
 # ----------------------------
 # Start all-in-one
