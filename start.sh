@@ -1,20 +1,29 @@
 #!/bin/bash
-set -e
 
-# Start SSH service
-service ssh start
+# ----------------------------
+# Start nginx
+# ----------------------------
+echo "Starting nginx..."
+nginx -g "daemon off;" &
 
+# ----------------------------
 # Start Filebrowser
-filebrowser -r / -p 8080 &
+# ----------------------------
+echo "Starting Filebrowser..."
+filebrowser -r / &
 
-# Start Wetty SSH
+# ----------------------------
+# Start Wetty (Web SSH)
+# ----------------------------
+echo "Starting Wetty..."
 wetty --port 10000 &
 
-# Start Node.js backend
-node /backend.js &
+# ----------------------------
+# Start Node backend (optional)
+# ----------------------------
+if [ -f /app/backend.js ]; then
+    echo "Starting Node backend..."
+    node /app/backend.js &
+fi
 
-# Start Nginx
-service nginx start
-
-# Keep container alive
-tail -f /dev/null
+wait
