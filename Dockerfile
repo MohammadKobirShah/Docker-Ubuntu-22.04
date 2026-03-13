@@ -55,7 +55,7 @@ RUN chmod +x /start.sh
 # Expose web port
 # ----------------------------
 EXPOSE 80
-EXPOSE 10000  # Wetty default port
+EXPOSE 10000
 
 # ----------------------------
 # Start all services
