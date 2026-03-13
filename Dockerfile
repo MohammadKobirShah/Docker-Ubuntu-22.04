@@ -11,17 +11,10 @@ RUN apt update && apt install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
-# Install Node.js 20 LTS
+# Install ttyd (Web Terminal)
 # ----------------------------
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt install -y nodejs \
-    && npm cache clean --force \
-    && rm -rf /var/lib/apt/lists/*
-
-# ----------------------------
-# Install Wetty (Web SSH)
-# ----------------------------
-RUN npm install -g wetty && npm cache clean --force
+RUN curl -L -o /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64 \
+    && chmod +x /usr/local/bin/ttyd
 
 # ----------------------------
 # Install Filebrowser (v2.61.2)
@@ -38,12 +31,11 @@ RUN curl -L -o /tmp/filebrowser.tar.gz \
 RUN curl -sSf https://sshx.io/get | sh || echo "SSHX install failed, continuing"
 
 # ----------------------------
-# Optional Node backend
+# Setup Python backend
 # ----------------------------
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --production
-COPY backend.js ./
+RUN pip3 install psutil --no-cache-dir
+COPY backend.py ./
 
 # ----------------------------
 # Copy dashboard / scripts / config
