@@ -15,13 +15,13 @@ RUN apt update && apt install -y --no-install-recommends \
 # ----------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt install -y nodejs \
-    && node -v \
-    && npm -v
+    && npm cache clean --force \
+    && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
 # Install Wetty (Web SSH)
 # ----------------------------
-RUN npm install -g wetty
+RUN npm install -g wetty && npm cache clean --force
 
 # ----------------------------
 # Install Filebrowser (v2.61.2)
@@ -31,6 +31,11 @@ RUN curl -L -o /tmp/filebrowser.tar.gz \
     && tar -xzvf /tmp/filebrowser.tar.gz -C /usr/local/bin \
     && rm -f /tmp/filebrowser.tar.gz \
     && chmod +x /usr/local/bin/filebrowser
+
+# ----------------------------
+# Install SSHX
+# ----------------------------
+RUN curl -sSf https://sshx.io/get | sh || echo "SSHX install failed, continuing"
 
 # ----------------------------
 # Optional Node backend

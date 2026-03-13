@@ -19,6 +19,12 @@ echo "Starting Wetty..."
 wetty --port 10000 &
 
 # ----------------------------
+# Start SSHX
+# ----------------------------
+echo "Starting SSHX..."
+sshx -q &
+
+# ----------------------------
 # Start Node backend (optional)
 # ----------------------------
 if [ -f /app/backend.js ]; then

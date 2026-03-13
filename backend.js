@@ -8,7 +8,7 @@ function getCPUUsage() {
     const cpus = os.cpus();
     let idle=0, total=0;
     cpus.forEach(core=>{
-        for(type in core.times) total+=core.times[type];
+        for(let type in core.times) total+=core.times[type];
         idle+=core.times.idle;
     });
     return Math.round(100 - (idle/total*100));
@@ -16,9 +16,15 @@ function getCPUUsage() {
 
 app.get('/stats', (req,res)=>{
     const memUsage = Math.round((1 - os.freemem()/os.totalmem())*100);
-    const diskUsage = Math.round(50 + Math.random()*30); // demo, replace with df
-    const cpuUsage = getCPUUsage();
-    res.json({cpu: cpuUsage, mem: memUsage, disk: diskUsage});
+    // Use df -h / to get correct disk usage
+    exec("df -h / | awk 'NR==2 {print $5}' | sed 's/%//'", (err, stdout) => {
+        let diskUsage = 0;
+        if(!err && stdout) {
+            diskUsage = parseInt(stdout.trim()) || 0;
+        }
+        const cpuUsage = getCPUUsage();
+        res.json({cpu: cpuUsage, mem: memUsage, disk: diskUsage});
+    });
 });
 
 app.get('/status', (req,res)=>{
@@ -26,8 +32,9 @@ app.get('/status', (req,res)=>{
     let status={};
     let count=0;
     services.forEach(s=>{
-        exec(`pgrep -x ${s}`, (err, stdout)=>{
-            status[s] = stdout ? 'Running' : 'Stopped';
+        // Use pgrep -f to match process arguments correctly (useful for wetty via node)
+        exec(`pgrep -f ${s}`, (err, stdout)=>{
+            status[s] = stdout && stdout.trim().length > 0 ? 'Running' : 'Stopped';
             count++;
             if(count === services.length) res.json(status);
         });
@@ -36,9 +43,15 @@ app.get('/status', (req,res)=>{
 
 app.post('/restart/:service', (req,res)=>{
     const service = req.params.service;
-    exec(`pkill -f ${service} && ${service} &`, (err)=>{
-        if(err) return res.status(500).send('Failed');
-        res.send('Restarted '+service);
+    let cmd = '';
+    if (service === 'filebrowser') cmd = 'filebrowser -r / &';
+    else if (service === 'wetty') cmd = 'wetty --port 10000 &';
+    else if (service === 'sshx') cmd = 'sshx -q &';
+    else return res.status(400).send('Unknown service');
+    
+    exec(`pkill -f ${service}; ${cmd}`, (err)=>{
+        if(err) return res.status(500).send('Failed to restart');
+        res.send('Restarted ' + service);
     });
 });
 
