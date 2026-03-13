@@ -1,59 +1,42 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-# ----------------------------
-# Base deps + build tools
-# ----------------------------
-RUN apt update && apt install -y --no-install-recommends \
-    curl wget git bash nginx ca-certificates \
-    python3 python3-pip make g++ build-essential \
+# ── System packages ──
+RUN apt-get update && apt-get install -y \
+    curl wget git vim nano htop tmux screen \
+    python3 python3-pip \
+    build-essential ca-certificates gnupg \
+    net-tools procps sudo lsof dnsutils \
+    iputils-ping unzip jq openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-# ----------------------------
-# Install ttyd (Web Terminal)
-# ----------------------------
-RUN curl -L -o /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64 \
-    && chmod +x /usr/local/bin/ttyd
+# ── Node.js 20 ──
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
-# ----------------------------
-# Install Filebrowser (v2.61.2)
-# ----------------------------
-RUN curl -L -o /tmp/filebrowser.tar.gz \
-    https://github.com/filebrowser/filebrowser/releases/download/v2.61.2/linux-amd64-filebrowser.tar.gz \
-    && tar -xzvf /tmp/filebrowser.tar.gz -C /usr/local/bin \
-    && rm -f /tmp/filebrowser.tar.gz \
-    && chmod +x /usr/local/bin/filebrowser
-
-# ----------------------------
-# Install SSHX
-# ----------------------------
-RUN curl -sSf https://sshx.io/get | sh || echo "SSHX install failed, continuing"
-
-# ----------------------------
-# Setup Python backend
-# ----------------------------
 WORKDIR /app
-RUN pip3 install psutil --no-cache-dir
-COPY backend.py ./
 
-# ----------------------------
-# Copy dashboard / scripts / config
-# ----------------------------
-COPY index.html /usr/share/nginx/html/index.html
-COPY start.sh /start.sh
-COPY nginx.conf /etc/nginx/nginx.conf
-RUN chmod +x /start.sh
+# ── Node deps ──
+COPY package.json ./
+RUN npm install --production
 
-# ----------------------------
-# Expose ports
-# ----------------------------
-# nginx / Filebrowser
-EXPOSE 80
-# Wetty
-EXPOSE 10000
+# ── Python deps ──
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# ----------------------------
-# Start all-in-one
-# ----------------------------
-CMD ["/start.sh"]
+# ── App files ──
+COPY . .
+RUN chmod +x start.sh
+
+# ── Workspace ──
+RUN mkdir -p /workspace /tmp/vps-logs \
+    && echo 'cd /workspace' >> /root/.bashrc
+ENV HOME=/workspace
+
+EXPOSE 3000
+
+CMD ["bash", "/app/start.sh"]
