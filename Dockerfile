@@ -11,7 +11,7 @@ RUN apt update && apt install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
-# Install Node.js 20 LTS (needed by Wetty & backend)
+# Install Node.js 20 LTS
 # ----------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt install -y nodejs \
@@ -33,9 +33,9 @@ RUN curl -L -o /tmp/filebrowser.tar.gz \
     && chmod +x /usr/local/bin/filebrowser
 
 # ----------------------------
-# Install Express for backend API
+# Install Express globally (backend)
 # ----------------------------
-RUN npm install express
+RUN npm install -g express
 
 # ----------------------------
 # Setup SSH
@@ -55,8 +55,9 @@ RUN chmod +x /start.sh
 # Expose web port
 # ----------------------------
 EXPOSE 80
+EXPOSE 10000  # Wetty default port
 
 # ----------------------------
-# Start all-in-one
+# Start all services
 # ----------------------------
 CMD ["/start.sh"]
