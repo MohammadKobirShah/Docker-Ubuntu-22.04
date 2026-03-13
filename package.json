@@ -1,0 +1,13 @@
+{
+  "name": "free-vps",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Free VPS with SSHX terminal — auto-redirect dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
