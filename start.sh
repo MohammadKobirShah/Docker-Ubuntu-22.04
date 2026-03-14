@@ -53,7 +53,7 @@ rm -f /tmp/sshx_url.txt
         echo "$line" >> /tmp/sshx_output.txt
         echo "$line" >> /tmp/vps-logs/sshx.log
         if echo "$line" | grep -q "https://sshx.io"; then
-            echo "$line" | grep -o 'https://sshx.io/[^ ]*' > /tmp/sshx_url.txt
+            echo "$line" | grep -oE 'https://sshx.io/[a-zA-Z0-9#_/-]+' > /tmp/sshx_url.txt
         fi
     done
 ) &
